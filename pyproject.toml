@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "advent-of-code-2025"
+version = "0.1.0"
+description = "Advent of Code 2025 solutions"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    {name = "Anna Yudina", email = "annayudi@gmail.com"}
+]
+
+dependencies = [
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

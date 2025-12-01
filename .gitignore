@@ -1,1 +1,6 @@
+# IntelliJ IDEA
 .idea/
+
+# Python
+*.egg-info/
+venv/
