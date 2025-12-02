@@ -9,21 +9,15 @@ def parse_input(data: str) -> list[int]:
 
 
 def part1(data: str) -> int:
-    instructions = parse_input(data)
-    start = 50
-
     def foldFunction(acc: tuple[int, int], instruction: int) -> tuple[int, int]:
         next = (acc[0] + instruction) % 100
         return (next, acc[1] + (1 if (next == 0) else 0))
 
-    result = reduce(lambda acc, i: foldFunction(acc, i), instructions, (start, 0))
+    result = reduce(lambda acc, i: foldFunction(acc, i), parse_input(data), (50, 0))
     return result[1]
 
 
 def part2(data: str) -> int:
-    instructions = parse_input(data)
-    start = 50
-
     def foldFunction(acc: tuple[int, int], instruction: int) -> tuple[int, int]:
         x = acc[0] + instruction
         next = x % 100
@@ -35,7 +29,7 @@ def part2(data: str) -> int:
 
         return (next, acc[1] + zeros_in_instruction + zeros_in_sign_difference)
 
-    result = reduce(lambda acc, i: foldFunction(acc, i), instructions, (start, 0))
+    result = reduce(lambda acc, i: foldFunction(acc, i), parse_input(data), (50, 0))
     return result[1]
 
 
