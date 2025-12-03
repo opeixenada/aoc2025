@@ -3,7 +3,7 @@ from aoc.utils import read_input
 
 
 def parse_input(data: str):
-    lines = data.split("\n")
+    lines = data.splitlines()
     # TODO: Parse your input here
     return lines
 
