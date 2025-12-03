@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-from aoc.utils import read_input
+from aoc.utils import run_solution
+
+# TODO: Update this to the current day
+DAY = 1
 
 
 def parse_input(data: str):
@@ -20,26 +23,5 @@ def part2(data: str) -> int:
     return 0
 
 
-def main():
-    # Update this to the current day
-    DAY = 1
-
-    print(f"=== Advent of Code 2025 - Day {DAY} ===\n")
-
-    # Test with example input
-    print("Testing with example input:")
-    example_data = read_input(day=DAY, example=True)
-    print(f"Part 1: {part1(example_data)}")
-    print(f"Part 2: {part2(example_data)}")
-
-    print("\n" + "-" * 40 + "\n")
-
-    # Solve with real input
-    print("Solving with real input:")
-    input_data = read_input(day=DAY)
-    print(f"Part 1: {part1(input_data)}")
-    print(f"Part 2: {part2(input_data)}")
-
-
 if __name__ == "__main__":
-    main()
+    run_solution(day=DAY, part1=part1, part2=part2)

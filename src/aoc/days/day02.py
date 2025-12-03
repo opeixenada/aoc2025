@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-from aoc.utils import read_input
+from aoc.utils import run_solution
+
+DAY = 2
 
 
 def parse_input(data: str) -> list[tuple[str, str]]:
@@ -24,7 +26,7 @@ def part1(data: str) -> int:
                     range(get_left(id_range[0]), get_right(id_range[1]) + 1)])
 
     return sum([invalid_ids_sum(id_range) for id_range in parse_input(data)])
-
+    
 
 def part2(data: str) -> int:
     def is_invalid(s: str) -> bool:
@@ -40,26 +42,5 @@ def part2(data: str) -> int:
     return sum([invalid_ids_sum(id_range) for id_range in parse_input(data)])
 
 
-def main():
-    # Update this to the current day
-    DAY = 2
-
-    print(f"=== Advent of Code 2025 - Day {DAY} ===\n")
-
-    # Test with example input
-    print("Testing with example input:")
-    example_data = read_input(day=DAY, example=True)
-    print(f"Part 1: {part1(example_data)}")
-    print(f"Part 2: {part2(example_data)}")
-
-    print("\n" + "-" * 40 + "\n")
-
-    # Solve with real input
-    print("Solving with real input:")
-    input_data = read_input(day=DAY)
-    print(f"Part 1: {part1(input_data)}")
-    print(f"Part 2: {part2(input_data)}")
-
-
 if __name__ == "__main__":
-    main()
+    run_solution(day=DAY, part1=part1, part2=part2)
