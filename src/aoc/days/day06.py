@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
+import re
 from functools import reduce
-from itertools import takewhile
+from operator import add, mul
 from typing import Callable
 
 from aoc.utils import run_solution
 
 DAY = 6
 
-type t_meta = list[tuple[str, int]]
-
 
 def parse_input(data: str) -> list[str]:
     return data.splitlines()
 
 
+def get_operation_and_identity(op_char: str) -> tuple[Callable[[int, int], int], int]:
+    return (mul, 1) if op_char == '*' else (add, 0)
+
+
 def part1(data: str) -> int:
     def reduce_tuple(t: tuple[str]) -> int:
-        operation: Callable[[int, int], int] = (lambda x, y: x * y) if t[-1] == '*' else (lambda x, y: x + y)
-        zero: int = 1 if t[-1] == '*' else 0
+        operation, zero = get_operation_and_identity(t[-1])
         return reduce(operation, [int(x) for x in t[:-1]], zero)
 
     return sum([reduce_tuple(t) for t in list(zip(*[line.split() for line in parse_input(data)]))])
@@ -26,53 +28,26 @@ def part1(data: str) -> int:
 def part2(data: str) -> int:
     parsed = parse_input(data)
 
-    def get_meta(xs: str) -> t_meta:
-        acc = []
-        i = 0
+    meta = [
+        (m.group(1), len(m.group(0)) - 1)
+        for m in re.finditer(r'(.)\s*', parsed[-1] + ' ')
+        if m.group(0)
+    ]
 
-        while i < len(xs):
-            spaces_count = len(list(takewhile(lambda s: s.isspace(), xs[(i + 1):])))
-            acc.append((xs[i], spaces_count))
-            i += spaces_count + 1
+    def split_by_meta(xs: str) -> list[str]:
+        return reduce(
+            lambda acc, m: (acc[0] + [xs[acc[1]:acc[1] + m[1]]], acc[1] + m[1] + 1),
+            meta, ([], 0)
+        )[0]
 
-        return acc
+    def reduce_by_meta(t: tuple) -> int:
+        op_char, k = t[-1]
+        op, zero = get_operation_and_identity(op_char)
+        nums = [int(''.join(elem[i] for elem in t[:-1])) for i in range(k)]
+        return reduce(op, nums, zero)
 
-    meta = get_meta(parsed[-1] + ' ')
-
-    def split_numbers(xs: str) -> list[str]:
-        acc = []
-        i = 0
-        j = 0
-
-        while i < len(meta):
-            k = meta[i][1]
-            acc.append(xs[j:(j + k)])
-            i += 1
-            j += k + 1
-
-        return acc
-
-    def reduce_tuple(t: tuple) -> int:
-        operation: Callable[[int, int], int] = (lambda x, y: x * y) if t[-1][0] == '*' else (lambda x, y: x + y)
-        zero: int = 1 if t[-1][0] == '*' else 0
-
-        k = t[-1][1]
-
-        numbers = []
-        i = 0
-
-        while i < k:
-            numbers.append(int(''.join(map(lambda s: s[i], t[:-1]))))
-            i += 1
-
-        print(f"{t[-1][0]}: {numbers}")
-
-        return reduce(operation, numbers, zero)
-
-    return sum(map(reduce_tuple, list(zip(*list(map(split_numbers, parsed[:-1])), meta))))
+    return sum(map(reduce_by_meta, zip(*map(split_by_meta, parsed[:-1]), meta)))
 
 
 if __name__ == "__main__":
     run_solution(day=DAY, part1=part1, part2=part2)
-
-# 12608160007999 too low
