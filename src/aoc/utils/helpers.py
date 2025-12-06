@@ -14,7 +14,7 @@ def read_input(day: int, example: bool = False) -> str:
     """
     filename = f"day{day:02d}_example.txt" if example else f"day{day:02d}.txt"
     input_path = Path(__file__).parent.parent.parent.parent / "inputs" / filename
-    return input_path.read_text().strip()
+    return input_path.read_text()
 
 
 def run_solution(day: int, part1: Callable[[str], Any], part2: Callable[[str], Any]) -> None:
