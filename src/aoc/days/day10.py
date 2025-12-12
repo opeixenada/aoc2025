@@ -2,7 +2,8 @@
 import re
 from dataclasses import dataclass
 from functools import reduce
-from itertools import zip_longest
+
+from pulp import LpProblem, LpMinimize, LpVariable, lpSum, PULP_CBC_CMD, value
 
 from aoc.utils import run_solution
 
@@ -11,32 +12,6 @@ DAY = 10
 
 def bit_mask(xs: list[int]) -> int:
     return reduce(lambda mask, x: mask | (1 << x), xs, 0)
-
-
-def permutations(n: int, target: int) -> list[list[int]]:
-    if n == 0:
-        return [[]] if target == 0 else []
-
-    result = []
-    for k in range(target + 1):
-        tail = permutations(n - 1, target - k)
-        result.extend([k] + t for t in tail)
-
-    return result
-
-
-def apply_buttons(buttons: list[list[int]], permutation: list[int], x: list[int]) -> list[int]:
-    result = x
-    for button, k in zip(buttons, permutation):
-        result = [v + b * k for v, b in zip(result, button)]
-    return result
-
-
-@dataclass
-class State:
-    lights: list[int]
-    buttons: list[list[int]]
-    count: int
 
 
 @dataclass
@@ -60,82 +35,61 @@ class Machine:
             states = new_states
             i += 1
 
-    def list_mask(self, xs: list[int]) -> list[int]:
-        return reduce(lambda ys, x: list(map(sum, zip_longest(ys, ([0] * x) + [1], fillvalue=0))), xs,
-                      [0] * len(self.joltage))
-
-    def is_valid_joltage(self, joltage: list[int]) -> bool:
-        return all(a <= b for (a, b) in zip(joltage, self.joltage))
-
     def set_joltage(self) -> int:
-        buttons_masks = list(map(self.list_mask, self.buttons))
-        stack = [State(lights=[0] * len(self.joltage), buttons=buttons_masks, count=0)]
-        result: int = 0
+        # For each button, see how many times at most it can be applied
+        upper_bounds = []
+        for button in self.buttons:
+            m = max(self.joltage)
+            for n in button:
+                m = min(m, self.joltage[n])
+            upper_bounds.append(m)
 
-        i = -1
+        equalities: list[list[int]] = []
+        equalities_rhs: list[int] = []
+        for i, jolt in enumerate(self.joltage):
+            relevant_buttons: list[int] = list(
+                map(
+                    lambda b: b[0],
+                    filter(lambda b: i in b[1], enumerate(self.buttons))
+                )
+            )
+            row = [0 if i not in relevant_buttons else 1 for i in range(len(self.buttons))]
+            equalities.append(row)
+            equalities_rhs.append(jolt)
 
-        # DFS
-        while True:
-            i += 1
+        # Create the LP problem
+        prob = LpProblem("Minimize_Sum", LpMinimize)
 
-            if not stack:
-                print(f"> {result}!")
-                return result
+        n_vars = len(self.buttons)
 
-            print(f"stack: {len(stack)}")
-
-            s = stack.pop()
-
-            # find the smallest gap between target and current joltage values
-            targets = list(
-                filter(
-                    lambda t: t[1] > 0,
-                    enumerate(map(lambda t: t[1] - t[0], zip(s.lights, self.joltage)))
+        # Create variables
+        variables = []
+        for i in range(n_vars):
+            variables.append(
+                LpVariable(
+                    name=f"x{i}",
+                    lowBound=0,
+                    upBound=upper_bounds[i],
+                    cat='Integer'
                 )
             )
 
-            if not targets:
-                if not result:
-                    result = s.count
-                else:
-                    result = min(result, s.count)
+        # Objective: minimize sum of all variables
+        prob += lpSum(variables)
 
-                print(f">> {result}?")
-                continue
+        # Add equality constraints
+        for i, (coefficients, rhs) in enumerate(zip(equalities, equalities_rhs)):
+            prob += lpSum([coefficients[j] * variables[j] for j in range(n_vars)]) == rhs, f"Equality_{i}"
 
-            targets.sort(key=lambda x: x[1])
-            (index, target) = targets[0]
+        # Solve
+        prob.solve(PULP_CBC_CMD(msg=False))
 
-            if result and s.count + targets[-1][1] >= result:
-                print(f"{i} EXC")
-                continue
-
-            # find all the buttons that can reach the target, they should be pressed `target` times in total
-            relevant_buttons = list(filter(lambda b: b[index] == 1, s.buttons))
-            other_buttons = list(filter(lambda b: b[index] == 0, s.buttons))
-
-            # distribute `target` between those buttons
-            relevant_buttons_permutations: list[list[int]] = permutations(len(relevant_buttons), target)
-
-            # apply buttons
-            new_lights = filter(self.is_valid_joltage,
-                                [apply_buttons(relevant_buttons, permutation, s.lights) for permutation in
-                                 relevant_buttons_permutations])
-            
-            if not other_buttons:
-                if any(lights == self.joltage for lights in new_lights):
-                    if not result:
-                        result = s.count + target
-                    else:
-                        result = min(result, s.count + target)
-
-                    print(f">> {result}?")
-                    continue
-            
-            new_states = [State(lights=lights, buttons=other_buttons, count=s.count + target) for lights in
-                          new_lights]
-
-            stack.extend(new_states)
+        # Extract results
+        obj_value = value(prob.objective)
+        if prob.status == 1 and obj_value is not None:
+            if isinstance(obj_value, (int, float)):
+                return int(obj_value)
+        return 0
 
 
 def parse_input(data: str) -> list[Machine]:

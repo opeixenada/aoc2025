@@ -26,15 +26,15 @@ def run_solution(day: int, part1: Callable[[str], Any], part2: Callable[[str], A
         part2: Function that solves part 2, takes input string and returns any type
     """
     print(f"=== Advent of Code 2025 - Day {day} ===\n")
-    
+
     # Test with example input
     print("Testing with example input:")
     example_data = read_input(day=day, example=True)
     print(f"Part 1: {part1(example_data)}")
     print(f"Part 2: {part2(example_data)}")
-    
+
     print("\n" + "-" * 40 + "\n")
-    
+
     # Solve with real input
     print("Solving with real input:")
     input_data = read_input(day=day)
