@@ -31,8 +31,8 @@ def part1(data: str) -> int:
 def part2(data: str) -> int:
     red = parse_input(data)
 
-    def is_vertical(l: t_line) -> bool:
-        return l[0][0] == l[1][0]
+    def is_vertical(line: t_line) -> bool:
+        return line[0][0] == line[1][0]
 
     contour: list[t_line] = list(zip(red, red[1:] + [red[0]]))
 
@@ -57,11 +57,11 @@ def part2(data: str) -> int:
         return result
 
     @lru_cache(maxsize=None)
-    def is_inner_line(l: t_line) -> bool:
-        if is_vertical(l):
-            points = [(l[0][0], y) for y in range(min(l[0][1], l[1][1]), max(l[0][1], l[1][1]) + 1)]
+    def is_inner_line(line: t_line) -> bool:
+        if is_vertical(line):
+            points = [(line[0][0], y) for y in range(min(line[0][1], line[1][1]), max(line[0][1], line[1][1]) + 1)]
         else:
-            points = [(x, l[0][1]) for x in range(min(l[0][0], l[1][0]), max(l[0][0], l[1][0]) + 1)]
+            points = [(x, line[0][1]) for x in range(min(line[0][0], line[1][0]), max(line[0][0], line[1][0]) + 1)]
 
         result = all(is_inner_point(p) for p in points)
 

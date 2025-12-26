@@ -88,7 +88,7 @@ def get_variants(shape: t_grid) -> list[t_grid]:
 
 
 def get_taken_space(shape: t_grid) -> int:
-    return sum(sum(map(lambda ch: 0 if ch == '.' else 1, l)) for l in shape)
+    return sum(sum(map(lambda ch: 0 if ch == '.' else 1, line)) for line in shape)
 
 
 def get_next_shape_index(current, requirements) -> int | None:
